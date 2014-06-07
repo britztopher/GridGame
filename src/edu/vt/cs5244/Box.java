@@ -8,7 +8,6 @@ package edu.vt.cs5244;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -17,19 +16,23 @@ import java.util.Set;
  */
 public class Box {
    
-    private Player winner;
+    private Player owner;
     private Set<Edge> edges = new HashSet<>();
+    private int row;
+    private int col;
     
-    public Box(){
+    public Box(int row, int col){
+        this.row = row;
+        this.col = col;
         
     }
     
-    public void setWinner(Player winner){
-        this.winner = winner;
+    public void setOwner(Player winner){
+        this.owner = winner;
     }
     
     public Player getOwner(){
-        return this.winner;
+        return this.owner;
     }
     
     //get the edges drawn on this box object
@@ -42,37 +45,39 @@ public class Box {
         
         boolean isEdgeDrawn = false;
         
-        for(Map.Entry<String, Box> entry : adjBoxMap.entrySet()){
+        
+        if(!edges.contains(side) && this.checkAdjBoxEdges(adjBoxMap, side)){
+
+            edges.add(side);
+            isEdgeDrawn = true;
+
+            //if all edges are drawn then size of set should equal 4
+            //and thus the winner is the current player
+            if(edges.size() == 4){
+                this.setOwner(player);
+            }
+        }
+        
+        
+        return isEdgeDrawn;
+
+        
+    }
+    
+    private boolean checkAdjBoxEdges(HashMap<String, Box> adjBoxMap, Edge edgeBeingDrawn){
+         
+        boolean canDrawEdge = true;
+        
+        for(Box box: adjBoxMap.values()){
             
-            String key = entry.getKey();
-            Box box = entry.getValue();
-            
-            if(box.getDrawnEdges().contains(side.opposite())){
-                isEdgeDrawn = false;
+            if(box != null && box.getDrawnEdges().contains(edgeBeingDrawn.opposite())){
+                canDrawEdge = false;
+                break;
             }
                  
         }
         
-        if(!edges.contains(side)){
-            
-            edges.add(side);
-            isEdgeDrawn = true;
-            
-            //if all edges are drawn then size of set should equal 4
-            //and thus the winner is the current player
-            if(edges.size() == 4){
-                this.setWinner(player);
-            }
-        }
+        return canDrawEdge;
         
-        return isEdgeDrawn;
-        
-    }
-    
-    public boolean isEdgeShared(Box box){
-        
-        boolean isEdgeShared = false;
-        
-        return true;
     }
 }

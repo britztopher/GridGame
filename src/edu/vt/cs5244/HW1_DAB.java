@@ -18,7 +18,7 @@ import java.util.Set;
  */
 public class HW1_DAB implements DABEngine{
     
-    private boolean notInitialized = false;
+    private boolean isInitialized = false;
     
     private HashMap<Player, Integer> scoreMap = new HashMap<>();
     private HashMap<Coordinate, Box> gameGridMap = new HashMap<>();
@@ -34,7 +34,7 @@ public class HW1_DAB implements DABEngine{
         for(int row = 0; row<size; row++){
           
             for(int col=0; col<size; col++){
-                gameGridMap.put(new Coordinate(row, col), new Box());
+                gameGridMap.put(new Coordinate(row, col), new Box(row, col));
             }
         }
         
@@ -48,14 +48,14 @@ public class HW1_DAB implements DABEngine{
         scoreMap.put(Player.ONE, 0);
         scoreMap.put(Player.TWO, 0);
         
-        notInitialized = true;
+        isInitialized = true;
     
     }
 
     @Override
     public int getSize() {
         
-        if(notInitialized){
+        if(!isInitialized){
             throw new DABException();
         }
         
@@ -66,6 +66,9 @@ public class HW1_DAB implements DABEngine{
     public Set<Edge> getEdgesAt(int row, int col) {
         
         Box selectedBox = this.getSelectedBox(row, col);
+        if(selectedBox ==null){
+            throw new DABException();
+        }
       
         return selectedBox.getDrawnEdges();
         
@@ -82,20 +85,30 @@ public class HW1_DAB implements DABEngine{
     public boolean drawEdge(int row, int col, Edge edge) {
        
          Box selectedBox = this.getSelectedBox(row, col);
+         boolean isEdgeDrawn = false;
          
-         //TODO-need to check if game is over too
-         if(selectedBox == null || edge == null || notInitialized ){
-             throw new DABException();
+        //TODO-need to check if game is over too
+        if(selectedBox == null || edge == null || !isInitialized ){
+            throw new DABException();
+        }
+        
+        //if the box is already owned then we dont want to draw an edge on it
+        if(selectedBox.getOwner() == null){
+        
+            isEdgeDrawn = selectedBox.drawEdge(edge, currPlayer, this.getAdjacentBoxes(row, col));
+
+            //if the edge is drawn then next player should go unless player scored
+            if(selectedBox.getOwner() == null){
+                currPlayer = currPlayer.next();
+            }else{
+                //get the previous score of player in map 
+                Integer score= scoreMap.get(selectedBox.getOwner());
+
+               //add one to that score
+                scoreMap.put(selectedBox.getOwner(), score++);
+            }
          }
          
-         
-         
-         boolean isEdgeDrawn = selectedBox.drawEdge(edge, currPlayer, this.getAd);
-         
-         //if the edge is drawn then next player should go unless player scored
-         if(isEdgeDrawn){
-             currPlayer.next();
-         }
          
          return isEdgeDrawn;
          
@@ -104,7 +117,7 @@ public class HW1_DAB implements DABEngine{
     @Override
     public Map<Player, Integer> getScores() {
         
-        if(notInitialized){
+        if(!isInitialized){
             throw new DABException();
         }
         
@@ -114,19 +127,24 @@ public class HW1_DAB implements DABEngine{
 
     @Override
     public Player getTurn() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if(!isInitialized){
+            throw new DABException();
+        }
+        return currPlayer;
     }
    
     private HashMap<String, Box> getAdjacentBoxes(int row, int col){
         
-        Box selectedBox = this.getSelectedBox(row, col);
-        
         HashMap<String, Box> adjBoxMap = new HashMap<>();
         
         adjBoxMap.put("leftBox",this.getSelectedBox(row, --col));
+        ++col;
         adjBoxMap.put("rightBox",this.getSelectedBox(row, ++col));
+        --col;
         adjBoxMap.put("topBox",this.getSelectedBox(--row, col));
+        ++row;
         adjBoxMap.put("bottomBox",this.getSelectedBox(++row, col));
+        --row;
         
         return adjBoxMap;
     }
