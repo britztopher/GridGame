@@ -99,11 +99,5 @@ public class Box {
         
     }
     
-    private boolean drawEdgeOnAdjBox(Edge edge){
-        Edge myEdge = edge;
-        
-        
-        
-        return true;
-    }
+    
 }

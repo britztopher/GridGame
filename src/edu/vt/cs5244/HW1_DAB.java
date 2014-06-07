@@ -6,10 +6,8 @@
 
 package edu.vt.cs5244;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,7 +28,9 @@ public class HW1_DAB implements DABEngine{
     @Override
     public void init(int size) {
         
-        assert(size>=2);
+        if(size < 2){
+            throw new DABException();
+        }
         
         for(int row = 0; row<size; row++){
           
@@ -43,12 +43,13 @@ public class HW1_DAB implements DABEngine{
        currPlayer = Player.ONE;
        
         //setting size to size of game board
-        this.size = size;
+        this.size = size*size;
            
         //reseting score;
         scoreMap.put(Player.ONE, 0);
         scoreMap.put(Player.TWO, 0);
         
+        //game is initialized
         isInitialized = true;
     
     }
@@ -72,7 +73,9 @@ public class HW1_DAB implements DABEngine{
         if(selectedBox ==null){
             throw new DABException();
         }
-      
+        
+        //since this is a snapshot of the edges drawn we must create a new set
+        //and add all the edges to it.
         usedEdgesSet.addAll(selectedBox.getDrawnEdges());
         
         return usedEdgesSet;
@@ -105,21 +108,24 @@ public class HW1_DAB implements DABEngine{
         
             isEdgeDrawn = selectedBox.drawEdge(edge, currPlayer);
            
-            
+            //if selected box is not on the outer edge of the grid
             if(adjBox != null ){
                 isAdjEdgeDrawn = adjBox.drawEdge(edge.opposite(), currPlayer);
             }
-                   
-
-            //if the edge is drawn then next player should go unless player scored
+             
+            //if the edge is drawn then next player should go unless player 
+            //scored
             if(selectedBox.getOwner()==null){
                 currPlayer = currPlayer.next();
             }else{
-                //get the previous score of player in map 
-                Integer score= scoreMap.get(selectedBox.getOwner());
-
-               //add one to that score
-                scoreMap.put(selectedBox.getOwner(), ++score);
+                this.addPointToPlayer(currPlayer);
+                
+                //if the adjacent box has an owner and there was a line drawn 
+                //on the last turn on that adjacent box then award another point
+                if(adjBox.getOwner()!=null && isAdjEdgeDrawn){
+                    this.addPointToPlayer(currPlayer);
+                }
+                
             }
          }
          
@@ -146,10 +152,16 @@ public class HW1_DAB implements DABEngine{
         return currPlayer;
     }
    
-    //need to refactor this because we only care about one box.  The one
-    //that is opposite of the side we are drawing the edge on.  ie - 
-    //if box is 1,1 and edge = top then only box we care about is 0,1 not all of
-    //the surrounding ones
+    /**
+     * Get the box on the edge side of the selected Box.
+     * 
+     * if top edge.TOP chosen then get the box located above the selected box.
+     * This returns null if the adjacent box sits outside of the grid.
+     * 
+     * @param row the row within the grid; the top row of squares is 0.
+     * @param col the column within the grid; the left column of squares is 0.
+     * @return a Box that is located on chosen edge direction
+     */
     private Box getAdjBox(int row, int col, Edge edge){
         
         Box adjBox = new Box(row, col);
@@ -167,10 +179,38 @@ public class HW1_DAB implements DABEngine{
         return adjBox;
     }
     
+    /**
+     * Gets the selected box from the Collection.
+     * 
+     * This is a helper method for just searching the collection for the 
+     * box that was selected.
+     * 
+     * @param row the row within the grid; the top row of squares is 0.
+     * @param col the column within the grid; the left column of squares is 0.
+     * @return the Box that contains the edge that was selected.
+     */
     private Box getSelectedBox(int row, int col){
         
         Box selectedBox = gameGridMap.get(new Coordinate(row, col));
         
         return selectedBox;
+    }
+    
+    /**
+     * Add a point to player.
+     * 
+     * helper method for just adding a point to a player that scores.
+     * 
+     * @param player player to add the point to 
+     * @return void because scoreBoard is a member variable, so it just modifies
+     * the variable.
+     */
+    private void addPointToPlayer(Player player){
+        //get the previous score of player in map 
+        Integer score= scoreMap.get(player);
+
+       //add one to that score
+        scoreMap.put(player, ++score);
+        
     }
 }

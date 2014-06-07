@@ -24,6 +24,11 @@ public class HW1_DABTest {
     public void tearDown() {
     }
 
+    @Test 
+    public void testGetSize(){
+        assertEquals("should return area of initialized grid", game.getSize(), 4);
+    }
+    
     @Test
     public void testGetTurn() {
         Player first = game.getTurn();
@@ -46,6 +51,26 @@ public class HW1_DABTest {
         Player player = game.getTurn();
         game.drawEdge(0, 0, Edge.RIGHT);
         assertEquals("Player must go again if box is completed", player, game.getTurn());
+    }
+    
+    @Test
+    public void testDoubleBoxScore(){
+        Player first = game.getTurn();
+        assertEquals("First player must be ONE", Player.ONE, first);
+          
+        Map<Player, Integer> scoreMap = game.getScores();
+        assertEquals("Score must start at 0", (Integer)0, scoreMap.get(Player.ONE));
+        
+        game.drawEdge(0, 0, Edge.TOP);//ONE
+        game.drawEdge(0, 0, Edge.BOTTOM);//TWO
+        game.drawEdge(0, 0, Edge.LEFT);//ONE
+        game.drawEdge(0, 1, Edge.TOP);//TWO
+        game.drawEdge(0, 1, Edge.BOTTOM);//ONE
+        game.drawEdge(0, 1, Edge.RIGHT);//TWO
+        game.drawEdge(0, 0, Edge.RIGHT);//ONE
+        
+        assertEquals("score should be 2 since both boxes were completed with one edge", (Integer)2, scoreMap.get(Player.ONE));
+        
     }
 
     @Test
@@ -118,6 +143,14 @@ public class HW1_DABTest {
         try {
             game.getEdgesAt(2, 0);
             fail("Getting edge at invalid location must throw DABException");
+        } catch (Exception e) {
+            if (!(e instanceof DABException)) {
+                fail("Wrong exception thrown getting edge at invalid location");
+            }
+        }
+        try {
+            game.init(1);
+            fail("Creating board grid less than size of 2 must throw DABException");
         } catch (Exception e) {
             if (!(e instanceof DABException)) {
                 fail("Wrong exception thrown getting edge at invalid location");
