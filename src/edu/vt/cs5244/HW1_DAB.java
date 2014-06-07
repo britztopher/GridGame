@@ -8,6 +8,7 @@ package edu.vt.cs5244;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -65,12 +66,16 @@ public class HW1_DAB implements DABEngine{
     @Override
     public Set<Edge> getEdgesAt(int row, int col) {
         
+        Set<Edge> usedEdgesSet = new HashSet<>();
+        
         Box selectedBox = this.getSelectedBox(row, col);
         if(selectedBox ==null){
             throw new DABException();
         }
       
-        return selectedBox.getDrawnEdges();
+        usedEdgesSet.addAll(selectedBox.getDrawnEdges());
+        
+        return usedEdgesSet;
         
     }
 
@@ -85,8 +90,11 @@ public class HW1_DAB implements DABEngine{
     public boolean drawEdge(int row, int col, Edge edge) {
        
          Box selectedBox = this.getSelectedBox(row, col);
-         boolean isEdgeDrawn = false;
+         //find the adjacent box and draw the edge on opposite side
+         Box adjBox =this.getAdjBox(row, col, edge);
          
+         boolean isEdgeDrawn = false;
+         boolean isAdjEdgeDrawn = false;
         //TODO-need to check if game is over too
         if(selectedBox == null || edge == null || !isInitialized ){
             throw new DABException();
@@ -95,20 +103,25 @@ public class HW1_DAB implements DABEngine{
         //if the box is already owned then we dont want to draw an edge on it
         if(selectedBox.getOwner() == null){
         
-            isEdgeDrawn = selectedBox.drawEdge(edge, currPlayer, this.getAdjacentBoxes(row, col));
+            isEdgeDrawn = selectedBox.drawEdge(edge, currPlayer);
+           
+            
+            if(adjBox != null ){
+                isAdjEdgeDrawn = adjBox.drawEdge(edge.opposite(), currPlayer);
+            }
+                   
 
             //if the edge is drawn then next player should go unless player scored
-            if(selectedBox.getOwner() == null){
+            if(selectedBox.getOwner()==null){
                 currPlayer = currPlayer.next();
             }else{
                 //get the previous score of player in map 
                 Integer score= scoreMap.get(selectedBox.getOwner());
 
                //add one to that score
-                scoreMap.put(selectedBox.getOwner(), score++);
+                scoreMap.put(selectedBox.getOwner(), ++score);
             }
          }
-         
          
          return isEdgeDrawn;
          
@@ -133,20 +146,25 @@ public class HW1_DAB implements DABEngine{
         return currPlayer;
     }
    
-    private HashMap<String, Box> getAdjacentBoxes(int row, int col){
+    //need to refactor this because we only care about one box.  The one
+    //that is opposite of the side we are drawing the edge on.  ie - 
+    //if box is 1,1 and edge = top then only box we care about is 0,1 not all of
+    //the surrounding ones
+    private Box getAdjBox(int row, int col, Edge edge){
         
-        HashMap<String, Box> adjBoxMap = new HashMap<>();
+        Box adjBox = new Box(row, col);
         
-        adjBoxMap.put("leftBox",this.getSelectedBox(row, --col));
-        ++col;
-        adjBoxMap.put("rightBox",this.getSelectedBox(row, ++col));
-        --col;
-        adjBoxMap.put("topBox",this.getSelectedBox(--row, col));
-        ++row;
-        adjBoxMap.put("bottomBox",this.getSelectedBox(++row, col));
-        --row;
+        if(edge == Edge.BOTTOM){
+            adjBox = this.getSelectedBox(++row, col);
+        }else if(edge == Edge.TOP){
+            adjBox = this.getSelectedBox(--row, col);
+        }else if(edge == Edge.LEFT){
+            adjBox = this.getSelectedBox(row, --col);
+        }else if(edge == Edge.RIGHT){
+            adjBox = this.getSelectedBox(row, ++col);
+        }
         
-        return adjBoxMap;
+        return adjBox;
     }
     
     private Box getSelectedBox(int row, int col){

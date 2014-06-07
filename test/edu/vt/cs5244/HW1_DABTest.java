@@ -62,7 +62,7 @@ public class HW1_DABTest {
 
         game.drawEdge(0, 0, Edge.RIGHT);
         assertEquals("New edge must appear in new getEdgesAt", 4, game.getEdgesAt(0, 0).size());
-        //assertFalse("New edge must not appear in previous getEdgesAt", three.contains(Edge.RIGHT));
+        assertFalse("New edge must not appear in previous getEdgesAt", three.contains(Edge.RIGHT));
         
         assertTrue("Shared edge must appear in getEdgesAt of neighbor", game.getEdgesAt(1, 0).contains(Edge.TOP));
         assertTrue("Shared edge must appear in getEdgesAt of neighbor", game.getEdgesAt(0, 1).contains(Edge.LEFT));

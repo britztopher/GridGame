@@ -35,20 +35,37 @@ public class Box {
         return this.owner;
     }
     
+    public void setRow(int row){
+        this.row = row;
+    }
+    
+    public int getRow(){
+        return this.row;
+    }
+    
+    public void setCol(int col){
+        this.col = col;
+    }
+    
+    public int getCol(){
+        return this.col;
+    }
+    
     //get the edges drawn on this box object
     public Set<Edge> getDrawnEdges(){
         
         return this.edges;
     }
     
-    public boolean drawEdge(Edge side, Player player, HashMap<String, Box> adjBoxMap){
+    public boolean drawEdge(Edge side, Player player){
         
         boolean isEdgeDrawn = false;
         
         
-        if(!edges.contains(side) && this.checkAdjBoxEdges(adjBoxMap, side)){
+        if(!edges.contains(side)){
 
             edges.add(side);
+            
             isEdgeDrawn = true;
 
             //if all edges are drawn then size of set should equal 4
@@ -64,6 +81,8 @@ public class Box {
         
     }
     
+    
+    
     private boolean checkAdjBoxEdges(HashMap<String, Box> adjBoxMap, Edge edgeBeingDrawn){
          
         boolean canDrawEdge = true;
@@ -73,11 +92,18 @@ public class Box {
             if(box != null && box.getDrawnEdges().contains(edgeBeingDrawn.opposite())){
                 canDrawEdge = false;
                 break;
-            }
-                 
+            } 
         }
         
         return canDrawEdge;
         
+    }
+    
+    private boolean drawEdgeOnAdjBox(Edge edge){
+        Edge myEdge = edge;
+        
+        
+        
+        return true;
     }
 }
